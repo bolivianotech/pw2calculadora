@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora</title>
+
+<style>
+  :root {
+    --paper: #F7F7F3;
+    --ink: #1B1F1D;
+    --muted: #5B615C;
+    --accent: #2F6F4E;
+    --key-bg: #FFFFFF;
+    --key-border: #D9D7CC;
+    --op-bg: #2F6F4E;
+    --op-text: #FFFFFF;
+    --screen-bg: #12171B;
+    --screen-text: #CFE8D9;
+    --special-bg: #E7E8E2;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #14181A;
+      --ink: #E9ECE9;
+      --muted: #A9B0AA;
+      --accent: #6FBF97;
+      --key-bg: #1D2224;
+      --key-border: #2A2F2C;
+      --op-bg: #2F6F4E;
+      --op-text: #E9ECE9;
+      --screen-bg: #0C1012;
+      --screen-text: #CFE8D9;
+      --special-bg: #292F2D;
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    padding: 1rem;
+  }
+
+  .calculadora {
+    width: min(22rem, 94vw);
+    padding: 1.3rem;
+    border-radius: 22px;
+    border: 1px solid var(--key-border);
+    background: var(--paper);
+
+    /* Mejora visual */
+    box-shadow:
+      0 15px 35px rgba(0, 0, 0, 0.10),
+      0 3px 8px rgba(0, 0, 0, 0.05);
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .calculadora:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 20px 40px rgba(0, 0, 0, 0.14),
+      0 5px 10px rgba(0, 0, 0, 0.06);
+  }
+
+  h1 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin: 0 0 0.8rem 0.2rem;
+  }
+
+  #pantalla {
+    background: var(--screen-bg);
+    color: var(--screen-text);
+    border-radius: 14px;
+    padding: 1.4rem 1rem;
+    text-align: right;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    min-height: 1.4em;
+
+    /* Mejora visual */
+    box-shadow:
+      inset 0 2px 5px rgba(0, 0, 0, 0.25),
+      0 2px 5px rgba(0, 0, 0, 0.10);
+
+    transition: background 0.2s ease;
+  }
+
+  .teclas {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.55rem;
+  }
+
+  button {
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding: 0.9rem 0;
+    min-height: 3.2rem;
+    border-radius: 12px;
+    border: 1px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--ink);
+    cursor: pointer;
+    font-family: inherit;
+
+    /* Mejora visual */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+    transition:
+      transform 0.1s ease,
+      box-shadow 0.1s ease,
+      opacity 0.1s ease;
+  }
+
+  /* Cuando pasamos el mouse */
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.10);
+  }
+
+  /* Cuando presionamos */
+  button:active {
+    transform: translateY(1px);
+    opacity: 0.75;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Botones de operaciones */
+  button.operador {
+    background: var(--op-bg);
+    color: var(--op-text);
+    border-color: var(--op-bg);
+  }
+
+  button.operador:hover {
+    filter: brightness(1.08);
+  }
+
+  /* Botón igual */
+  button.igual {
+    background: var(--accent);
+    color: #FFFFFF;
+    border-color: var(--accent);
+    grid-column: span 2;
+  }
+
+  button.igual:hover {
+    filter: brightness(1.08);
+  }
+
+  /* Botones especiales: %, √, x² y +/- */
+  button.especial {
+    background: var(--special-bg);
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  button.especial:hover {
+    filter: brightness(1.05);
+  }
+
+  button.doble {
+    grid-column: span 2;
+  }
+
+  /* Adaptación para celulares */
+  @media (max-width: 400px) {
+    .calculadora {
+      width: 100%;
+      padding: 1rem;
+    }
+
+    #pantalla {
+      font-size: 1.7rem;
+    }
+
+    button {
+      min-height: 3rem;
+      font-size: 1rem;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="calculadora">
+
+  <h1>Calculadora</h1>
+
+  <div id="pantalla">0</div>
+
+  <div class="teclas">
+
+    <!-- Primera fila -->
+    <button class="doble" onclick="limpiar()">C</button>
+    <button onclick="borrarUltimo()">⌫</button>
+    <button class="operador" onclick="agregarOperador('/')">÷</button>
+
+    <!-- Segunda fila -->
+    <button onclick="agregarDigito('7')">7</button>
+    <button onclick="agregarDigito('8')">8</button>
+    <button onclick="agregarDigito('9')">9</button>
+    <button class="operador" onclick="agregarOperador('*')">×</button>
+
+    <!-- Tercera fila -->
+    <button onclick="agregarDigito('4')">4</button>
+    <button onclick="agregarDigito('5')">5</button>
+    <button onclick="agregarDigito('6')">6</button>
+    <button class="operador" onclick="agregarOperador('-')">−</button>
+
+    <!-- Cuarta fila -->
+    <button onclick="agregarDigito('1')">1</button>
+    <button onclick="agregarDigito('2')">2</button>
+    <button onclick="agregarDigito('3')">3</button>
+    <button class="operador" onclick="agregarOperador('+')">+</button>
+
+    <!-- Quinta fila -->
+    <button onclick="agregarDigito('0')">0</button>
+    <button onclick="agregarDigito('.')">.</button>
+    <button class="igual" onclick="calcular()">=</button>
+
+    <!-- Nuevas funciones -->
+    <button class="especial" onclick="porcentaje()">%</button>
+    <button class="especial" onclick="raizCuadrada()">√</button>
+    <button class="especial" onclick="cuadrado()">x²</button>
+    <button class="especial" onclick="cambiarSigno()">+/-</button>
+
+  </div>
+</div>
+
+
+<script>
+  /*
+    Código base de la calculadora.
+
+    Implementa las cuatro operaciones básicas:
+    suma, resta, multiplicación y división.
+
+    También se agregaron:
+    porcentaje, raíz cuadrada, cuadrado y cambio de signo.
+  */
+
+  let expresion = '';
+
+  const pantalla = document.getElementById('pantalla');
+
+
+  function actualizarPantalla() {
+    pantalla.textContent = expresion === '' ? '0' : expresion;
+  }
+
+
+  function agregarDigito(digito) {
+
+    // Evita dos puntos decimales seguidos
+    // en el mismo número
+    if (digito === '.') {
+
+      const partes = expresion.split(/[\+\-\*\/]/);
+      const numeroActual = partes[partes.length - 1];
+
+      if (numeroActual.includes('.')) return;
+    }
+
+    expresion += digito;
+
+    actualizarPantalla();
+  }
+
+
+  function agregarOperador(operador) {
+
+    if (expresion === '') return;
+
+    const ultimoCaracter = expresion.slice(-1);
+
+    if ('+-*/'.includes(ultimoCaracter)) {
+
+      // Reemplaza el operador anterior
+      expresion = expresion.slice(0, -1) + operador;
+
+    } else {
+
+      expresion += operador;
+    }
+
+    actualizarPantalla();
+  }
+
+
+  function borrarUltimo() {
+
+    expresion = expresion.slice(0, -1);
+
+    actualizarPantalla();
+  }
+
+
+  function limpiar() {
+
+    expresion = '';
+
+    actualizarPantalla();
+  }
+
+
+  function calcular() {
+
+    if (expresion === '') return;
+
+    try {
+
+      // Solo se permiten números,
+      // punto decimal y operadores básicos
+      if (!/^[0-9.+\-*/]+$/.test(expresion)) {
+        throw new Error('Expresión inválida');
+      }
+
+      const resultado =
+        Function('"use strict"; return (' + expresion + ')')();
+
+      if (!isFinite(resultado)) {
+        throw new Error('División entre cero');
+      }
+
+      expresion = String(resultado);
+
+      actualizarPantalla();
+
+    } catch (error) {
+
+      pantalla.textContent = 'Error';
+
+      expresion = '';
+    }
+  }
+
+
+  /*
+    ==============================
+    NUEVAS FUNCIONES
+    ==============================
+  */
+
+
+  // Convierte el número actual en porcentaje
+  function porcentaje() {
+
+    if (expresion === '') return;
+
+    try {
+
+      const numero = Number(expresion);
+
+      if (!isFinite(numero)) {
+        throw new Error();
+      }
+
+      expresion = String(numero / 100);
+
+      actualizarPantalla();
+
+    } catch (error) {
+
+      pantalla.textContent = 'Error';
+
+      expresion = '';
+    }
+  }
+
+
+  // Calcula la raíz cuadrada
+  function raizCuadrada() {
+
+    if (expresion === '') return;
+
+    try {
+
+      const numero = Number(expresion);
+
+      if (!isFinite(numero) || numero < 0) {
+        throw new Error();
+      }
+
+      expresion = String(Math.sqrt(numero));
+
+      actualizarPantalla();
+
+    } catch (error) {
+
+      pantalla.textContent = 'Error';
+
+      expresion = '';
+    }
+  }
+
+
+  // Eleva el número actual al cuadrado
+  function cuadrado() {
+
+    if (expresion === '') return;
+
+    try {
+
+      const numero = Number(expresion);
+
+      if (!isFinite(numero)) {
+        throw new Error();
+      }
+
+      expresion = String(numero * numero);
+
+      actualizarPantalla();
+
+    } catch (error) {
+
+      pantalla.textContent = 'Error';
+
+      expresion = '';
+    }
+  }
+
+
+  // Cambia el número entre positivo y negativo
+  function cambiarSigno() {
+
+    if (expresion === '') return;
+
+    try {
+
+      const numero = Number(expresion);
+
+      if (!isFinite(numero)) {
+        throw new Error();
+      }
+
+      expresion = String(numero * -1);
+
+      actualizarPantalla();
+
+    } catch (error) {
+
+      pantalla.textContent = 'Error';
+
+      expresion = '';
+    }
+  }
+
+</script>
+
+</body>
+</html>
