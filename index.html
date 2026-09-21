@@ -128,7 +128,7 @@
 
     <button onclick="agregarDigito('0')">0</button>
     <button onclick="agregarDigito('.')">.</button>
-    <button></button>
+    <button class="operador" onclick="calcularLogaritmoNeperiano()">ln</button>
     <button class="operador" onclick="agregarOperador('**')">^</button>
     <button class="igual" onclick="calcular()">=</button>
   </div>
@@ -186,6 +186,33 @@
   function limpiar() {
     expresion = '';
     actualizarPantalla();
+  }
+
+  /*
+    FUNCIÓN NUEVA: LOGARITMO NEPERIANO (ln)
+
+    Toma el número que está en la pantalla (o el resultado de la operación
+    escrita) y calcula su logaritmo neperiano (base e) con Math.log().
+  */
+  function calcularLogaritmoNeperiano() {
+    if (expresion === '') return;
+    try {
+      // Solo se permiten dígitos, punto decimal y los cuatro operadores básicos
+      if (!/^[0-9.+\-*/]+$/.test(expresion)) {
+        throw new Error('Expresión inválida');
+      }
+      const resultadoPrevio = Function('"use strict"; return (' + expresion + ')')();
+      // El logaritmo neperiano solo existe para números mayores que cero
+      if (!isFinite(resultadoPrevio) || resultadoPrevio <= 0) {
+        throw new Error('Logaritmo inválido');
+      }
+      const resultado = Math.log(resultadoPrevio);
+      expresion = String(resultado);
+      actualizarPantalla();
+    } catch (error) {
+      pantalla.textContent = 'Error';
+      expresion = '';
+    }
   }
 
   function calcular() {
