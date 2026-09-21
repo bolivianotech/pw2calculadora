@@ -107,10 +107,11 @@
   <div id="pantalla">0</div>
 
   <div class="teclas">
-    <button class="doble" onclick="limpiar()">C</button>
+    <button onclick="limpiar()">C</button>
     <button onclick="borrarUltimo()">⌫</button>
     <button class="operador" onclick="agregarOperador('/')">÷</button>
-    
+    <button onclick="calcularFactorial()">n!</button>
+
     <button onclick="agregarDigito('7')">7</button>
     <button onclick="agregarDigito('8')">8</button>
     <button onclick="agregarDigito('9')">9</button>
@@ -128,8 +129,6 @@
 
     <button onclick="agregarDigito('0')">0</button>
     <button onclick="agregarDigito('.')">.</button>
-    <button></button>
-    <button class="operador" onclick="agregarOperador('**')">^</button>
     <button class="igual" onclick="calcular()">=</button>
   </div>
 </div>
@@ -151,7 +150,7 @@
   const pantalla = document.getElementById('pantalla');
 
   function actualizarPantalla() {
-  pantalla.textContent = expresion === '' ? '0' : expresion.replace(/\*\*/g, '^');
+    pantalla.textContent = expresion === '' ? '0' : expresion;
   }
 
   function agregarDigito(digito) {
@@ -167,7 +166,6 @@
 
   function agregarOperador(operador) {
     if (expresion === '') return;
-    if (expresion.endsWith('**')) { expresion = expresion.slice(0, -2) + operador; return actualizarPantalla(); }
     const ultimoCaracter = expresion.slice(-1);
     if ('+-*/'.includes(ultimoCaracter)) {
       // Reemplaza el operador anterior en vez de acumular dos seguidos
@@ -206,6 +204,43 @@
       expresion = '';
     }
   }
+
+  function calcularFactorial() {
+    if (expresion === '') return;
+
+    // Separamos la expresión conservando los operadores, para ubicar el último número escrito
+    const partes = expresion.split(/([+\-*/])/);
+    const ultimoNumero = partes[partes.length - 1];
+
+    if (ultimoNumero === '') return;
+
+    const numero = Number(ultimoNumero);
+
+    // El factorial solo está definido para enteros no negativos
+    if (!Number.isInteger(numero) || numero < 0) {
+      pantalla.textContent = 'Error';
+      expresion = '';
+      return;
+    }
+
+    // A partir de 171! el resultado se vuelve Infinity en JavaScript
+    if (numero > 170) {
+      pantalla.textContent = 'Error';
+      expresion = '';
+      return;
+    }
+
+    let resultado = 1;
+    for (let i = 2; i <= numero; i++) {
+      resultado *= i;
+    }
+
+    // Reemplazamos solo el último número por su factorial, dejando intacto lo demás
+    partes[partes.length - 1] = String(resultado);
+    expresion = partes.join('');
+    actualizarPantalla();
+  }
 </script>
+
 </body>
 </html>
