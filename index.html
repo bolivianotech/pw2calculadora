@@ -162,6 +162,7 @@
 
     <button onclick="agregarDigito('0')">0</button>
     <button onclick="agregarDigito('.')">.</button>
+    <button class="operador" onclick="raizCuadrada()" title="Raíz cuadrada">√</button>
     <button class="operador" onclick="calcularLogaritmoNeperiano()" title="Logaritmo neperiano (ln)">ln</button>
     <button class="operador" onclick="factorial()">x!</button>
     <button class="operador" onclick="porcentaje()">%</button>
@@ -258,6 +259,40 @@
       }
 
       const resultado = Math.log(valor);
+      expresion = String(Math.round(resultado * 1e12) / 1e12);
+      actualizarPantalla();
+    } catch (error) {
+      if (historial) historial.textContent = '';
+      pantalla.textContent = 'Error';
+      expresion = '';
+    }
+  }
+
+  function raizCuadrada() {
+    if (expresion === '') return;
+    try {
+      // Se permite una expresión completa, pero el cálculo final es la raíz del valor total
+      if (!/^[0-9.+\-*/^]+$/.test(expresion)) {
+        throw new Error('Expresión inválida');
+      }
+
+      let expSegura = expresion.replace(/\^/g, '**');
+      if (/^-[0-9.]+/.test(expSegura)) {
+        expSegura = expSegura.replace(/^(-[0-9.]+)/, function(match) {
+          return '(' + match + ')';
+        });
+      }
+
+      const valor = Function('"use strict"; return (' + expSegura + ')')();
+      if (!isFinite(valor) || valor < 0) {
+        throw new Error('Raíz inválida');
+      }
+
+      if (historial) {
+        historial.textContent = '√(' + expresion.replace(/\*\*/g, '^') + ') =';
+      }
+
+      const resultado = Math.sqrt(valor);
       expresion = String(Math.round(resultado * 1e12) / 1e12);
       actualizarPantalla();
     } catch (error) {
